@@ -47,7 +47,7 @@ def train_model(
     # set up loss function and optimizer
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(net.parameters(), lr=lr)
-    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[])
+    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[5], gamma=0.1)
     # scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.8)
 
     # training
@@ -67,7 +67,7 @@ def train_model(
 
                 # forward + backward + optimize
                 encoded_vector, output_channel = net(input_channel)
-                loss = criterion(input_channel, output_channel)
+                loss = criterion(output_channel, input_channel)
 
                 nmse = torch.mean(cal_nmse(input_channel, output_channel), 0).item()
 
@@ -179,7 +179,7 @@ if __name__ == "__main__":
     val_csv = "/test_data_idx.csv"
     test_csv = "/test_data_idx.csv"
     train_batch_size = 64
-    test_batch_size = 64
+    test_batch_size = 1024
 
     train_loader = DataLoader(
         DataFeedSynth(data_root, train_csv, portion=1.0), batch_size=train_batch_size, shuffle=True
@@ -200,9 +200,9 @@ if __name__ == "__main__":
         val_loader,
         test_loader,
         comment=comment,
-        encoded_dim=512,
+        encoded_dim=32,
         num_epoch=1000,
         if_writer=True,
         model_path=None,
-        lr=1e-3,
+        lr=1e-2,
     )
