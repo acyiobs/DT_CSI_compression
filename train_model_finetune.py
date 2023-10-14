@@ -47,7 +47,7 @@ def train_model(
     # set up loss function and optimizer
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(net.parameters(), lr=lr)
-    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[5], gamma=0.1)
+    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[], gamma=0.1)
     # scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.8)
 
     # training
@@ -121,7 +121,7 @@ def train_model(
 
     if if_writer:
         writer.close()
-        torch.save(net.state_dict(), model_path)
+        # torch.save(net.state_dict(), model_path)
 
     # test
     net.eval()
@@ -164,7 +164,7 @@ def test_model(test_loader, model_path):
         train_loader=None,
         val_loader=None,
         test_loader=test_loader,
-        num_epoch=1000,
+        num_epoch=0,
         if_writer=False,
         model_path=model_path,
         lr=0.0,
@@ -202,8 +202,8 @@ if __name__ == "__main__":
         test_loader,
         comment=comment,
         encoded_dim=32,
-        num_epoch=0,
+        num_epoch=100,
         if_writer=True,
-        model_path=None,
-        lr=1e-2,
+        model_path='checkpoint/22_57_24_23_10_13_Csinet-Csinet_train_on_synth.path',
+        lr=1e-3,
     )

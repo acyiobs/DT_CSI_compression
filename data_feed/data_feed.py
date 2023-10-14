@@ -23,11 +23,15 @@ def create_samples(data_root, csv_path, random_state, num_data_point, portion):
     channel_ad_clip, data_idx = sklearn.utils.shuffle(channel_ad_clip, data_idx, random_state=random_state)
     channel_ad_clip = np.squeeze(channel_ad_clip)
 
-    num_data = data_idx.shape[0]
-    p = int(num_data*portion)
+    if num_data_point:
+        channel_ad_clip = channel_ad_clip[:num_data_point, ...]
+        data_idx = data_idx[:num_data_point, ...]
+    else:
+        num_data = data_idx.shape[0]
+        p = int(num_data*portion)
 
-    channel_ad_clip = channel_ad_clip[:p, ...]
-    data_idx = data_idx[:p, ...]
+        channel_ad_clip = channel_ad_clip[:p, ...]
+        data_idx = data_idx[:p, ...]
 
     # normalization
     # channel_ad_clip = channel_ad_clip / np.abs(channel_ad_clip).max((-1,-2), keepdims=True)
