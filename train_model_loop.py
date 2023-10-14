@@ -10,6 +10,7 @@ import sys, datetime
 from models.Csinet import Csinet
 from utils.cal_nmse import cal_nmse
 from data_feed.data_feed import DataFeed
+from scipy.io import savemat
 
 
 def train_model(
@@ -47,10 +48,13 @@ def train_model(
     # set up loss function and optimizer
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(net.parameters(), lr=lr)
-    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[5], gamma=0.1)
+    scheduler = torch.optim.lr_scheduler.MultiStepLR(
+        optimizer, milestones=[5], gamma=0.1
+    )
     # scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.8)
 
     # training
+    all_val_nmse = []
     for epoch in range(num_epoch):
         net.train()
         running_loss = 0.0
@@ -83,41 +87,46 @@ def train_model(
                 tepoch.set_postfix(log)
             scheduler.step()
 
-        if not if_writer:
-            continue  # no validation unless writter enabled
+        # if not if_writer:
+        #     continue  # no validation unless writter enabled
 
-        # validation
-        net.eval()
-        with torch.no_grad():
-            total = 0
-            val_loss = 0
-            val_nmse = 0
+        if epoch >= num_epoch - 50 or if_writer:
+            # validation
+            net.eval()
+            with torch.no_grad():
+                total = 0
+                val_loss = 0
+                val_nmse = 0
 
-            for data in val_loader:
-                # get the inputs
-                input_channel, data_idx = data[0].to(device), data[1].to(device)
+                for data in val_loader:
+                    # get the inputs
+                    input_channel, data_idx = data[0].to(device), data[1].to(device)
 
-                # zero the parameter gradients
-                optimizer.zero_grad()
+                    # zero the parameter gradients
+                    optimizer.zero_grad()
 
-                # forward + backward + optimize
-                encoded_vector, output_channel = net(input_channel)
+                    # forward + backward + optimize
+                    encoded_vector, output_channel = net(input_channel)
 
-                val_loss += nn.MSELoss(reduction="mean")(
-                    input_channel, output_channel
-                ).item() * data_idx.shape[0]
-                val_nmse += torch.sum(cal_nmse(input_channel, output_channel), 0)
-                total += data_idx.shape[0]
+                    val_loss += (
+                        nn.MSELoss(reduction="mean")(
+                            input_channel, output_channel
+                        ).item()
+                        * data_idx.shape[0]
+                    )
+                    val_nmse += torch.sum(cal_nmse(input_channel, output_channel), 0)
+                    total += data_idx.shape[0]
 
-            val_loss /= float(total)
-            val_nmse /= float(total)
-        print("val_loss={:.6e}".format(val_loss), flush=True)
-        print("val_nmse={:.6f}".format(val_nmse), flush=True)
-
-        writer.add_scalar("Loss/train", running_loss, epoch)
-        writer.add_scalar("Loss/test", val_loss, epoch)
-        writer.add_scalar("NMSE/train", running_nmse, epoch)
-        writer.add_scalar("NMSE/test", val_nmse, epoch)
+                val_loss /= float(total)
+                val_nmse /= float(total)
+            all_val_nmse.append(val_nmse.item())
+            print("val_loss={:.6e}".format(val_loss), flush=True)
+            print("val_nmse={:.6f}".format(val_nmse), flush=True)
+            if if_writer:
+                writer.add_scalar("Loss/train", running_loss, epoch)
+                writer.add_scalar("Loss/test", val_loss, epoch)
+                writer.add_scalar("NMSE/train", running_nmse, epoch)
+                writer.add_scalar("NMSE/test", val_nmse, epoch)
 
     if if_writer:
         writer.close()
@@ -140,9 +149,10 @@ def train_model(
             # forward + backward + optimize
             encoded_vector, output_channel = net(input_channel)
 
-            test_loss += nn.MSELoss(reduction="mean")(
-                    input_channel, output_channel
-                ).item() * data_idx.shape[0]
+            test_loss += (
+                nn.MSELoss(reduction="mean")(input_channel, output_channel).item()
+                * data_idx.shape[0]
+            )
             test_nmse += torch.sum(cal_nmse(input_channel, output_channel), 0)
             total += data_idx.shape[0]
 
@@ -153,6 +163,7 @@ def train_model(
         print("test_nmse={:.6f}".format(test_nmse), flush=True)
 
         return {
+            "all_val_nmse": all_val_nmse,
             "test_loss": test_loss,
             "test_nmse": test_nmse,
             "model_path": model_path,
@@ -182,28 +193,44 @@ if __name__ == "__main__":
     train_batch_size = 64
     test_batch_size = 1024
 
-    train_loader = DataLoader(
-        DataFeed(real_data_root, train_csv, num_data_point=1000), batch_size=train_batch_size, shuffle=True
-    )
-    val_loader = DataLoader(
-        DataFeed(real_data_root, val_csv, num_data_point=10000), batch_size=test_batch_size
-    )
-    test_loader = DataLoader(
-        DataFeed(real_data_root, test_csv, num_data_point=10000), batch_size=test_batch_size
-    )
+    all_nmse = []
 
-    now = datetime.datetime.now().strftime("%H_%M_%S")
-    date = datetime.date.today().strftime("%y_%m_%d")
-    comment = "_".join([now, date])
+    for num_train_data in [1000, 5000, 10000, 50000, 80000]:
+        train_loader = DataLoader(
+            DataFeed(real_data_root, train_csv, num_data_point=num_train_data),
+            batch_size=train_batch_size,
+            shuffle=True,
+        )
+        val_loader = DataLoader(
+            DataFeed(real_data_root, val_csv, num_data_point=10000),
+            batch_size=test_batch_size,
+        )
+        test_loader = DataLoader(
+            DataFeed(real_data_root, test_csv, num_data_point=10000),
+            batch_size=test_batch_size,
+        )
 
-    train_model(
-        train_loader,
-        val_loader,
-        test_loader,
-        comment=comment,
-        encoded_dim=32,
-        num_epoch=1000,
-        if_writer=True,
-        model_path=None,
-        lr=1e-2,
+        now = datetime.datetime.now().strftime("%H_%M_%S")
+        date = datetime.date.today().strftime("%y_%m_%d")
+        comment = "_".join([now, date])
+
+        print("Number of trainig data points : " + str(num_train_data))
+        ret = train_model(
+            train_loader,
+            val_loader,
+            test_loader,
+            comment=comment,
+            encoded_dim=32,
+            num_epoch=500,
+            if_writer=False,
+            model_path=None,
+            lr=1e-2,
+        )
+        all_nmse.append(ret["all_val_nmse"])
+    all_avg_nmse = np.asarray([np.asarray(nmse).mean() for nmse in all_nmse])
+    print(all_avg_nmse)
+    savemat(
+        "result/all_avg_nmse_train_on_synth.mat",
+        {"all_avg_nmse_train_on_synth": all_avg_nmse},
     )
+    print("done")
