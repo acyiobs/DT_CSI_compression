@@ -101,7 +101,7 @@ class Decoder(nn.Module):
     
 
 
-class AutoEncoder(nn.Module):
+class Csinet(nn.Module):
     def __init__(self, encoded_dim):
         super().__init__()
         self.encoder = Encoder(encoded_dim)
@@ -119,7 +119,7 @@ if __name__ == "__main__":
     encoded_dim = 32
     encoder = Encoder(encoded_dim)
     decoder = Decoder(encoded_dim)
-    autoencoder = AutoEncoder(encoded_dim)
+    autoencoder = Csinet(encoded_dim)
     summary(encoder, input_size=(16, 2, 32, 32))
     summary(decoder, input_size=(16, 32))
     summary(autoencoder, input_size=(16, 2, 32, 32))

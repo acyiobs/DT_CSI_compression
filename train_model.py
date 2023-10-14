@@ -7,7 +7,7 @@ from collections import OrderedDict
 from torchinfo import summary
 from tqdm import tqdm
 import sys, datetime
-from model import AutoEncoder
+from models.Csinet import Csinet
 from utils.cal_nmse import cal_nmse
 from data_feed.data_feed_synth import DataFeed as DataFeedSynth
 
@@ -29,7 +29,7 @@ def train_model(
     print(device)
 
     # instantiate the model and send to GPU
-    net = AutoEncoder(encoded_dim)
+    net = Csinet(encoded_dim)
     net.to(device)
 
     # path to save the model
