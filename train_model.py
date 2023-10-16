@@ -8,6 +8,7 @@ from torchinfo import summary
 from tqdm import tqdm
 import sys, datetime
 from models.Csinet import Csinet
+from models.ConvSimple import ConvSimple
 from utils.cal_nmse import cal_nmse
 from data_feed.data_feed import DataFeed
 
@@ -29,7 +30,7 @@ def train_model(
     print(device)
 
     # instantiate the model and send to GPU
-    net = Csinet(encoded_dim)
+    net = ConvSimple(encoded_dim)
     net.to(device)
 
     # path to save the model
@@ -48,6 +49,9 @@ def train_model(
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(net.parameters(), lr=lr)
     scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[5], gamma=0.1)
+    # scheduler1 = torch.optim.lr_scheduler.LinearLR(optimizer, start_factor=0.01, end_factor=1.0, total_iters=30)
+    # scheduler2 = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, num_epoch, eta_min=5e-5)
+    # scheduler = torch.optim.lr_scheduler.SequentialLR(optimizer, [scheduler1, scheduler2], milestones=[30])
     # scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.8)
 
     # training
@@ -183,7 +187,7 @@ if __name__ == "__main__":
     test_batch_size = 1024
 
     train_loader = DataLoader(
-        DataFeed(real_data_root, train_csv, num_data_point=1000), batch_size=train_batch_size, shuffle=True
+        DataFeed(real_data_root, train_csv, num_data_point=80000), batch_size=train_batch_size, shuffle=True
     )
     val_loader = DataLoader(
         DataFeed(real_data_root, val_csv, num_data_point=10000), batch_size=test_batch_size

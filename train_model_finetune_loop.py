@@ -10,7 +10,7 @@ import sys, datetime
 from models.Csinet import Csinet
 from utils.cal_nmse import cal_nmse
 from data_feed.data_feed import DataFeed
-
+from scipy.io import savemat
 
 def train_model(
     train_loader,
@@ -143,7 +143,7 @@ def train_model(
             test_loss += nn.MSELoss(reduction="mean")(
                     input_channel, output_channel
                 ).item() * data_idx.shape[0]
-            test_nmse += torch.sum(cal_nmse(input_channel, output_channel), 0)
+            test_nmse += torch.sum(cal_nmse(input_channel, output_channel), 0).item()
             total += data_idx.shape[0]
 
         test_loss /= float(total)
@@ -182,28 +182,40 @@ if __name__ == "__main__":
     train_batch_size = 64
     test_batch_size = 1024
 
-    train_loader = DataLoader(
-        DataFeed(real_data_root, train_csv, num_data_point=80000), batch_size=train_batch_size, shuffle=True
-    )
-    val_loader = DataLoader(
-        DataFeed(real_data_root, val_csv, num_data_point=10000), batch_size=test_batch_size
-    )
-    test_loader = DataLoader(
-        DataFeed(real_data_root, test_csv, num_data_point=10000), batch_size=test_batch_size
-    )
+    all_nmse = []
 
-    now = datetime.datetime.now().strftime("%H_%M_%S")
-    date = datetime.date.today().strftime("%y_%m_%d")
-    comment = "_".join([now, date])
+    for num_train_data in [1000, 5000, 10000, 50000, 80000]:
 
-    train_model(
-        train_loader,
-        val_loader,
-        test_loader,
-        comment=comment,
-        encoded_dim=32,
-        num_epoch=100,
-        if_writer=True,
-        model_path='checkpoint/22_57_24_23_10_13_Csinet-Csinet_train_on_synth.path',
-        lr=1e-3,
-    )
+        train_loader = DataLoader(
+            DataFeed(real_data_root, train_csv, num_data_point=num_train_data), batch_size=train_batch_size, shuffle=True
+        )
+        val_loader = DataLoader(
+            DataFeed(real_data_root, val_csv, num_data_point=10000), batch_size=test_batch_size
+        )
+        test_loader = DataLoader(
+            DataFeed(real_data_root, test_csv, num_data_point=10000), batch_size=test_batch_size
+        )
+
+        now = datetime.datetime.now().strftime("%H_%M_%S")
+        date = datetime.date.today().strftime("%y_%m_%d")
+        comment = "_".join([now, date])
+
+        ret = train_model(
+            train_loader,
+            val_loader,
+            test_loader,
+            comment=comment,
+            encoded_dim=32,
+            num_epoch=10,
+            if_writer=True,
+            model_path='checkpoint/22_57_24_23_10_13_Csinet-Csinet_train_on_synth.path',
+            lr=1e-4,
+        )
+        all_nmse.append(ret["test_nmse"])
+    all_nmse = np.asarray(all_nmse)
+    print(all_nmse)
+    savemat(
+        "result/all_nmse_finetune.mat",
+        {"all_nmse_finetune": all_nmse},
+        )
+    print("done")
