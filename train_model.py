@@ -7,7 +7,6 @@ from collections import OrderedDict
 from torchinfo import summary
 from tqdm import tqdm
 import sys, datetime
-from models.Csinet import Csinet
 from models.CsinetPlus import CsinetPlus
 from utils.cal_nmse import cal_nmse
 from data_feed.data_feed import DataFeed
@@ -187,7 +186,7 @@ if __name__ == "__main__":
     test_batch_size = 1024
 
     train_loader = DataLoader(
-        DataFeed(real_data_root, train_csv, num_data_point=20000), batch_size=train_batch_size, shuffle=True
+        DataFeed(synth_data_root, train_csv, num_data_point=20000), batch_size=train_batch_size, shuffle=True
     )
     val_loader = DataLoader(
         DataFeed(real_data_root, val_csv, num_data_point=10000), batch_size=test_batch_size
@@ -206,7 +205,7 @@ if __name__ == "__main__":
         test_loader,
         comment=comment,
         encoded_dim=32,
-        num_epoch=1000,
+        num_epoch=500,
         if_writer=True,
         model_path=None,
         lr=1e-2,
