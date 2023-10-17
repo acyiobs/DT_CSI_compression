@@ -7,7 +7,7 @@ from collections import OrderedDict
 from torchinfo import summary
 from tqdm import tqdm
 import sys, datetime
-from models.Csinet import Csinet
+from models.CsinetPlus import CsinetPlus
 from utils.cal_nmse import cal_nmse
 from data_feed.data_feed import DataFeed
 from scipy.io import savemat
@@ -29,7 +29,7 @@ def train_model(
     print(device)
 
     # instantiate the model and send to GPU
-    net = Csinet(encoded_dim)
+    net = CsinetPlus(encoded_dim)
     net.to(device)
 
     # path to save the model
@@ -184,7 +184,7 @@ if __name__ == "__main__":
 
     all_nmse = []
 
-    for num_train_data in [1000, 5000, 10000, 50000, 80000]:
+    for num_train_data in [1000, 2000, 4000, 8000, 16000, 32000]:
 
         train_loader = DataLoader(
             DataFeed(real_data_root, train_csv, num_data_point=num_train_data), batch_size=train_batch_size, shuffle=True

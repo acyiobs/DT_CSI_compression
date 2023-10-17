@@ -7,9 +7,6 @@ from torch.utils.data import Dataset, DataLoader
 from scipy.io import loadmat
 from einops import rearrange, reduce, repeat
 
-import matplotlib.pyplot as plt
-import torchvision.transforms as T
-
 
 def create_samples(data_root, csv_path, random_state, num_data_point, portion):
     # load channel data
@@ -39,7 +36,7 @@ def create_samples(data_root, csv_path, random_state, num_data_point, portion):
     # channel_ad_clip = channel_ad_clip / np.linalg.norm(channel_ad_clip,axis=(-1,-2), keepdims=True)
 
     # channel_ad_clip = channel_ad_clip - np.abs(channel_ad_clip).max((-1,-2), keepdims=True)
-    
+
     channel_ad_clip /= np.abs(channel_ad_clip).max((-1,-2), keepdims=True)
 
     # channel_ad_clip = torch.from_numpy(channel_ad_clip)

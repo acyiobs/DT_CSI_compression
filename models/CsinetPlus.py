@@ -24,7 +24,7 @@ class Encoder(nn.Module):
         )
         self.fc = nn.Linear(in_features=2 * Nc * Nt, out_features=encoded_dim)
         self.leakyrelu = nn.LeakyReLU()
-        self.name = "ConvSimple"
+        self.name = "CsinetPlus"
 
     def forward(self, x):
         out = self.conv_block1(x)
@@ -91,7 +91,7 @@ class Decoder(nn.Module):
         self.refine3 = Refinenet()
         self.refine4 = Refinenet()
         self.refine5 = Refinenet()
-        self.name = "ConvSimple"
+        self.name = "CsinetPlus"
         self.tanh = nn.Tanh()
 
     def forward(self, x):
@@ -112,7 +112,7 @@ class Decoder(nn.Module):
     
 
 
-class ConvSimple(nn.Module):
+class CsinetPlus(nn.Module):
     def __init__(self, encoded_dim):
         super().__init__()
         self.encoder = Encoder(encoded_dim)
@@ -130,7 +130,7 @@ if __name__ == "__main__":
     encoded_dim = 32
     encoder = Encoder(encoded_dim)
     decoder = Decoder(encoded_dim)
-    autoencoder = ConvSimple(encoded_dim)
+    autoencoder = CsinetPlus(encoded_dim)
     summary(encoder, input_size=(16, 2, 32, 32))
     summary(decoder, input_size=(16, 32))
     summary(autoencoder, input_size=(16, 2, 32, 32))

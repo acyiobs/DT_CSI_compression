@@ -195,7 +195,7 @@ if __name__ == "__main__":
 
     all_nmse = []
 
-    for num_train_data in [1000, 5000, 10000, 50000, 80000]:
+    for num_train_data in [1000, 2000, 4000, 8000, 16000, 32000]:
         train_loader = DataLoader(
             DataFeed(real_data_root, train_csv, num_data_point=num_train_data),
             batch_size=train_batch_size,
@@ -230,7 +230,7 @@ if __name__ == "__main__":
     all_avg_nmse = np.asarray([np.asarray(nmse).mean() for nmse in all_nmse])
     print(all_avg_nmse)
     savemat(
-        "result/all_avg_nmse_train_on_synth.mat",
-        {"all_avg_nmse_train_on_synth": all_avg_nmse},
+        "result/all_avg_nmse_train_on_real.mat",
+        {"all_avg_nmse_train_on_real": all_avg_nmse},
     )
     print("done")
