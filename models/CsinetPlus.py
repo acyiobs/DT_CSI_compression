@@ -92,7 +92,7 @@ class Decoder(nn.Module):
         self.refine4 = Refinenet()
         self.refine5 = Refinenet()
         self.name = "CsinetPlus"
-        self.tanh = nn.Tanh()
+
 
     def forward(self, x):
         # x.shape = (batch_size, encoded_dim)
@@ -109,7 +109,7 @@ class Decoder(nn.Module):
         tmp = out.reshape((out.shape[0], -1))
         tmp = torch.norm(tmp,dim=(-1), keepdim=True)
         tmp = tmp.reshape((tmp.shape[0], 1, 1, 1))
-        out = out / tmp # self.tanh(out)
+        out = out / tmp
 
         return out
     
