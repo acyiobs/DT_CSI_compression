@@ -186,7 +186,7 @@ if __name__ == "__main__":
     test_batch_size = 1024
 
     train_loader = DataLoader(
-        DataFeed(synth_data_root, train_csv, num_data_point=32000), batch_size=train_batch_size, shuffle=True
+        DataFeed(synth_data_root, train_csv, num_data_point=1000), batch_size=train_batch_size, shuffle=True
     )
     val_loader = DataLoader(
         DataFeed(real_data_root, val_csv, num_data_point=10000), batch_size=test_batch_size
