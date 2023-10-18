@@ -15,14 +15,15 @@ class Encoder(nn.Module):
         self.conv_block1 = nn.Sequential(
             nn.Conv2d(2, 2, kernel_size=7, stride=1, padding=3, bias=True),
             nn.BatchNorm2d(num_features=2),
-            nn.ELU(),
+            nn.LeakyReLU(negative_slope=0.3),
         )
         self.conv_block2 = nn.Sequential(
             nn.Conv2d(2, 2, kernel_size=7, stride=1, padding=3, bias=True),
             nn.BatchNorm2d(num_features=2),
-            nn.ELU(),
+            nn.LeakyReLU(negative_slope=0.3),
         )
         self.fc = nn.Linear(in_features=2 * Nc * Nt, out_features=encoded_dim)
+        self.leakyrelu = nn.LeakyReLU()
         self.name = "CsinetPlus"
 
     def forward(self, x):
@@ -47,17 +48,17 @@ class Refinenet(nn.Module):
         self.conv1 = nn.Sequential(
             nn.Conv2d(2, 8, kernel_size=7, stride=1, padding=3, bias=True),
             nn.BatchNorm2d(num_features=8),
-            nn.ELU(),
+            nn.LeakyReLU(negative_slope=0.3),
         )
         self.conv2 = nn.Sequential(
             nn.Conv2d(8, 16, kernel_size=5, stride=1, padding=2, bias=True),
             nn.BatchNorm2d(num_features=16),
-            nn.ELU(),
+            nn.LeakyReLU(negative_slope=0.3),
         )
         self.conv3 = nn.Sequential(
             nn.Conv2d(16, 2, kernel_size=3, stride=1, padding=1, bias=True),
             nn.BatchNorm2d(num_features=2),
-            nn.LeakyReLU(),
+            nn.Tanh(),
         )
 
     def forward(self, x):
@@ -72,17 +73,6 @@ class Refinenet(nn.Module):
 
         return out
     
-class NormalizationLayer(nn.Module):
-    def __init__(self):
-        super().__init__()
-    def forward(self, x):
-        tmp = x.reshape((x.shape[0], -1))
-        x_norm = torch.norm(tmp, dim=(-1), keepdim=True)
-        x_norm = x_norm.reshape((x.shape[0], 1, 1, 1))
-        out = x / x_norm
-        return out
-
-
 
 class Decoder(nn.Module):
     # input: (batch_size, encoded_dim) codeword
@@ -96,7 +86,6 @@ class Decoder(nn.Module):
             nn.BatchNorm2d(num_features=2),
             nn.Tanh(),
         )
-        self.normlayer = NormalizationLayer()
         self.refine1 = Refinenet()
         self.refine2 = Refinenet()
         self.refine3 = Refinenet()

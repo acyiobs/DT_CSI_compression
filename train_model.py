@@ -47,7 +47,9 @@ def train_model(
     # set up loss function and optimizer
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(net.parameters(), lr=lr)
-    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[], gamma=0.1)
+    scheduler = torch.optim.lr_scheduler.MultiStepLR(
+        optimizer, milestones=[], gamma=0.1
+    )
     # scheduler1 = torch.optim.lr_scheduler.LinearLR(optimizer, start_factor=0.01, end_factor=1.0, total_iters=30)
     # scheduler2 = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, num_epoch, eta_min=5e-5)
     # scheduler = torch.optim.lr_scheduler.SequentialLR(optimizer, [scheduler1, scheduler2], milestones=[30])
@@ -106,9 +108,10 @@ def train_model(
                 # forward + backward + optimize
                 encoded_vector, output_channel = net(input_channel)
 
-                val_loss += nn.MSELoss(reduction="mean")(
-                    input_channel, output_channel
-                ).item() * data_idx.shape[0]
+                val_loss += (
+                    nn.MSELoss(reduction="mean")(input_channel, output_channel).item()
+                    * data_idx.shape[0]
+                )
                 val_nmse += torch.sum(cal_nmse(input_channel, output_channel), 0)
                 total += data_idx.shape[0]
 
@@ -143,9 +146,10 @@ def train_model(
             # forward + backward + optimize
             encoded_vector, output_channel = net(input_channel)
 
-            test_loss += nn.MSELoss(reduction="mean")(
-                    input_channel, output_channel
-                ).item() * data_idx.shape[0]
+            test_loss += (
+                nn.MSELoss(reduction="mean")(input_channel, output_channel).item()
+                * data_idx.shape[0]
+            )
             test_nmse += torch.sum(cal_nmse(input_channel, output_channel), 0)
             total += data_idx.shape[0]
 
@@ -186,13 +190,17 @@ if __name__ == "__main__":
     test_batch_size = 1024
 
     train_loader = DataLoader(
-        DataFeed(synth_data_root, train_csv, num_data_point=1000), batch_size=train_batch_size, shuffle=True
+        DataFeed(synth_data_root, train_csv, num_data_point=1000),
+        batch_size=train_batch_size,
+        shuffle=True,
     )
     val_loader = DataLoader(
-        DataFeed(real_data_root, val_csv, num_data_point=10000), batch_size=test_batch_size
+        DataFeed(real_data_root, val_csv, num_data_point=10000),
+        batch_size=test_batch_size,
     )
     test_loader = DataLoader(
-        DataFeed(real_data_root, test_csv, num_data_point=10000), batch_size=test_batch_size
+        DataFeed(real_data_root, test_csv, num_data_point=10000),
+        batch_size=test_batch_size,
     )
 
     now = datetime.datetime.now().strftime("%H_%M_%S")
