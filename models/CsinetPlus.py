@@ -106,7 +106,10 @@ class Decoder(nn.Module):
         out = self.refine3(out)
         out = self.refine4(out)
         out = self.refine5(out)
-        out = self.tanh(out)
+        tmp = out.reshape((out.shape[0], -1))
+        tmp = torch.norm(tmp,dim=(-1), keepdim=True)
+        tmp = tmp.reshape((tmp.shape[0], 1, 1, 1))
+        out = out / tmp # self.tanh(out)
 
         return out
     
