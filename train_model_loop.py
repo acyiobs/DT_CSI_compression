@@ -7,7 +7,7 @@ from collections import OrderedDict
 from torchinfo import summary
 from tqdm import tqdm
 import sys, datetime
-from models.Csinet import Csinet
+from models.CsinetPlus import CsinetPlus
 from utils.cal_nmse import cal_nmse
 from data_feed.data_feed import DataFeed
 from scipy.io import savemat
@@ -30,7 +30,7 @@ def train_model(
     print(device)
 
     # instantiate the model and send to GPU
-    net = Csinet(encoded_dim)
+    net = CsinetPlus(encoded_dim)
     net.to(device)
 
     # path to save the model
