@@ -38,11 +38,11 @@ def create_samples(data_root, csv_path, random_state, num_data_point, portion):
     # channel_ad_clip = channel_ad_clip - np.abs(channel_ad_clip).max((-1,-2), keepdims=True)
 
     channel_ad_clip /= np.abs(channel_ad_clip).max((-1,-2), keepdims=True)
+    channel_ad_clip = channel_ad_clip / np.expand_dims(channel_ad_clip[:, 0, 0] / np.abs(channel_ad_clip[:, 0, 0]), (1,2))
 
     # channel_ad_clip = torch.from_numpy(channel_ad_clip)
     # channel_ad_clip = torch.view_as_real(channel_ad_clip)
-    # channel_ad_clip = channel_ad_clip - torch.amin(channel_ad_clip, dim=(-1,-2,-3), keepdim=True)
-    # channel_ad_clip = channel_ad_clip / torch.amax(channel_ad_clip, dim=(-1,-2,-3), keepdim=True)
+    # channel_ad_clip = channel_ad_clip / torch.amax(channel_ad_clip.abs(), dim=(-1,-2,-3), keepdim=True)
     # channel_ad_clip = torch.view_as_complex(channel_ad_clip).numpy()
 
     # channel_ad_clip = channel_ad_clip / np.expand_dims(channel_ad_clip[:, 0, 0] / np.abs(channel_ad_clip[:, 0, 0]), (1,2))

@@ -175,7 +175,7 @@ def test_model(test_loader, model_path):
 
 
 if __name__ == "__main__":
-    torch.manual_seed(0)
+    torch.manual_seed(1115)
     torch.use_deterministic_algorithms(True)
     real_data_root = "DeepMIMO/DeepMIMO_datasets/Boston5G_3p5_1"
     synth_data_root = "DeepMIMO/DeepMIMO_datasets/Boston5G_3p5_small_notree"
