@@ -197,7 +197,7 @@ if __name__ == "__main__":
     for num_train_data in [1000, 2000, 4000, 8000, 16000, 32000]:
         torch.manual_seed(768)
         train_loader = DataLoader(
-            DataFeed(real_data_root, train_csv, num_data_point=num_train_data),
+            DataFeed(synth_data_root, train_csv, num_data_point=num_train_data),
             batch_size=train_batch_size,
             shuffle=True,
         )
@@ -230,7 +230,7 @@ if __name__ == "__main__":
     all_avg_nmse = np.asarray([np.asarray(nmse).mean() for nmse in all_nmse])
     print(all_avg_nmse)
     savemat(
-        "result3/all_avg_nmse_train_on_real.mat",
-        {"all_avg_nmse_train_on_real": all_avg_nmse},
+        "result3/all_avg_nmse_train_on_synth.mat",
+        {"all_avg_nmse_train_on_synth": all_avg_nmse},
     )
     print("done")
