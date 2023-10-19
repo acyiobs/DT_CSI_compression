@@ -19,9 +19,10 @@ def train_model(
     comment="unknown",
     encoded_dim=16,
     num_epoch=200,
+    lr=1e-2,
     if_writer=False,
     model_path=None,
-    lr=1e-3,
+    save_model=False
 ):
     # check gpu acceleration availability
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -50,12 +51,10 @@ def train_model(
     scheduler = torch.optim.lr_scheduler.MultiStepLR(
         optimizer, milestones=[], gamma=0.1
     )
-    # scheduler1 = torch.optim.lr_scheduler.LinearLR(optimizer, start_factor=0.01, end_factor=1.0, total_iters=30)
-    # scheduler2 = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, num_epoch, eta_min=5e-5)
-    # scheduler = torch.optim.lr_scheduler.SequentialLR(optimizer, [scheduler1, scheduler2], milestones=[30])
     # scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.8)
 
     # training
+    all_val_nmse = []
     for epoch in range(num_epoch):
         net.train()
         running_loss = 0.0
@@ -88,45 +87,50 @@ def train_model(
                 tepoch.set_postfix(log)
             scheduler.step()
 
-        if not if_writer:
-            continue  # no validation unless writter enabled
+        if val_loader is None:
+            continue  # no validation is needed
 
-        # validation
-        net.eval()
-        with torch.no_grad():
-            total = 0
-            val_loss = 0
-            val_nmse = 0
+        if epoch >= num_epoch - 50 or if_writer:
+            # validation
+            net.eval()
+            with torch.no_grad():
+                total = 0
+                val_loss = 0
+                val_nmse = 0
 
-            for data in val_loader:
-                # get the inputs
-                input_channel, data_idx = data[0].to(device), data[1].to(device)
+                for data in val_loader:
+                    # get the inputs
+                    input_channel, data_idx = data[0].to(device), data[1].to(device)
 
-                # zero the parameter gradients
-                optimizer.zero_grad()
+                    # zero the parameter gradients
+                    optimizer.zero_grad()
 
-                # forward + backward + optimize
-                encoded_vector, output_channel = net(input_channel)
+                    # forward + backward + optimize
+                    encoded_vector, output_channel = net(input_channel)
 
-                val_loss += (
-                    nn.MSELoss(reduction="mean")(input_channel, output_channel).item()
-                    * data_idx.shape[0]
-                )
-                val_nmse += torch.sum(cal_nmse(input_channel, output_channel), 0)
-                total += data_idx.shape[0]
+                    val_loss += (
+                        nn.MSELoss(reduction="mean")(
+                            input_channel, output_channel
+                        ).item()
+                        * data_idx.shape[0]
+                    )
+                    val_nmse += torch.sum(cal_nmse(input_channel, output_channel), 0)
+                    total += data_idx.shape[0]
 
-            val_loss /= float(total)
-            val_nmse /= float(total)
-        print("val_loss={:.6e}".format(val_loss), flush=True)
-        print("val_nmse={:.6f}".format(val_nmse), flush=True)
-
-        writer.add_scalar("Loss/train", running_loss, epoch)
-        writer.add_scalar("Loss/test", val_loss, epoch)
-        writer.add_scalar("NMSE/train", running_nmse, epoch)
-        writer.add_scalar("NMSE/test", val_nmse, epoch)
+                val_loss /= float(total)
+                val_nmse /= float(total)
+            all_val_nmse.append(val_nmse.item())
+            print("val_loss={:.6e}".format(val_loss), flush=True)
+            print("val_nmse={:.6f}".format(val_nmse), flush=True)
+            if if_writer:
+                writer.add_scalar("Loss/train", running_loss, epoch)
+                writer.add_scalar("Loss/test", val_loss, epoch)
+                writer.add_scalar("NMSE/train", running_nmse, epoch)
+                writer.add_scalar("NMSE/test", val_nmse, epoch)
 
     if if_writer:
         writer.close()
+    if save_model:
         torch.save(net.state_dict(), model_path)
 
     # test
@@ -150,7 +154,7 @@ def train_model(
                 nn.MSELoss(reduction="mean")(input_channel, output_channel).item()
                 * data_idx.shape[0]
             )
-            test_nmse += torch.sum(cal_nmse(input_channel, output_channel), 0)
+            test_nmse += torch.sum(cal_nmse(input_channel, output_channel), 0).item()
             total += data_idx.shape[0]
 
         test_loss /= float(total)
@@ -160,6 +164,7 @@ def train_model(
         print("test_nmse={:.6f}".format(test_nmse), flush=True)
 
         return {
+            "all_val_nmse": all_val_nmse,
             "test_loss": test_loss,
             "test_nmse": test_nmse,
             "model_path": model_path,
@@ -171,7 +176,7 @@ def test_model(test_loader, model_path):
         train_loader=None,
         val_loader=None,
         test_loader=test_loader,
-        num_epoch=1000,
+        num_epoch=0,
         if_writer=False,
         model_path=model_path,
         lr=0.0,
@@ -207,7 +212,7 @@ if __name__ == "__main__":
     date = datetime.date.today().strftime("%y_%m_%d")
     comment = "_".join([now, date])
 
-    train_model(
+    ret = train_model(
         train_loader,
         val_loader,
         test_loader,
@@ -218,3 +223,4 @@ if __name__ == "__main__":
         model_path=None,
         lr=1e-2,
     )
+    print("done")

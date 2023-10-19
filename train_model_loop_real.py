@@ -26,28 +26,16 @@ if __name__ == "__main__":
         for num_train_data in [1000, 2000, 4000, 8000, 16000, 32000]:
             torch.manual_seed(seeds[i])
             train_loader = DataLoader(
-                DataFeed(
-                    real_data_root,
-                    train_csv,
-                    num_data_point=num_train_data,
-                    random_state=seeds[i],
-                ),
+                DataFeed(real_data_root, train_csv, num_data_point=num_train_data, random_state=seeds[i]),
                 batch_size=train_batch_size,
                 shuffle=True,
             )
             val_loader = DataLoader(
-                DataFeed(
-                    real_data_root, val_csv, num_data_point=10000, random_state=seeds[i]
-                ),
+                DataFeed(real_data_root, val_csv, num_data_point=10000, random_state=seeds[i]),
                 batch_size=test_batch_size,
             )
             test_loader = DataLoader(
-                DataFeed(
-                    real_data_root,
-                    test_csv,
-                    num_data_point=10000,
-                    random_state=seeds[i],
-                ),
+                DataFeed(real_data_root, test_csv, num_data_point=10000, random_state=seeds[i]),
                 batch_size=test_batch_size,
             )
 
@@ -74,7 +62,7 @@ if __name__ == "__main__":
 
     print(all_avg_nmse)
     savemat(
-        "result4/all_avg_nmse_train_on_synth.mat",
-        {"all_avg_nmse_train_on_synth": all_avg_nmse},
+        "result4/all_avg_nmse_train_on_real.mat",
+        {"all_avg_nmse_train_on_real": all_avg_nmse},
     )
     print("done")
