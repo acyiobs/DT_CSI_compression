@@ -1,174 +1,10 @@
 import numpy as np
 import torch
-import torch.nn as nn
-from torch.utils.data import Dataset, DataLoader
-from torch.utils.tensorboard import SummaryWriter
-from collections import OrderedDict
-from torchinfo import summary
-from tqdm import tqdm
-import sys, datetime
-from models.CsinetPlus import CsinetPlus
-from utils.cal_nmse import cal_nmse
+from torch.utils.data import DataLoader
+import datetime
 from data_feed.data_feed import DataFeed
 from scipy.io import savemat
-
-def train_model(
-    train_loader,
-    val_loader,
-    test_loader,
-    comment="unknown",
-    encoded_dim=16,
-    num_epoch=200,
-    if_writer=False,
-    model_path=None,
-    lr=1e-3,
-):
-    # check gpu acceleration availability
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    # Assuming that we are on a CUDA machine, this should print a CUDA device:
-    print(device)
-
-    # instantiate the model and send to GPU
-    net = CsinetPlus(encoded_dim)
-    net.to(device)
-
-    # path to save the model
-    comment = comment + "_" + net.name
-    if model_path:
-        net.load_state_dict(torch.load(model_path))
-    else:
-        model_path = "checkpoint/" + comment + ".path"
-
-    # print model summary
-    if if_writer:
-        summary(net, input_data=torch.zeros(16, 2, 32, 32).to(device))
-        writer = SummaryWriter(log_dir="runs/" + comment)
-
-    # set up loss function and optimizer
-    criterion = nn.MSELoss()
-    optimizer = torch.optim.Adam(net.parameters(), lr=lr)
-    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[], gamma=0.1)
-    # scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.8)
-
-    # training
-    for epoch in range(num_epoch):
-        net.train()
-        running_loss = 0.0
-        running_nmse = 0.0
-        with tqdm(train_loader, unit="batch", file=sys.stdout) as tepoch:
-            for i, data in enumerate(tepoch, 0):
-                tepoch.set_description(f"Epoch {epoch}")
-
-                # get the inputs
-                input_channel, data_idx = data[0].to(device), data[1].to(device)
-
-                # zero the parameter gradients
-                optimizer.zero_grad()
-
-                # forward + backward + optimize
-                encoded_vector, output_channel = net(input_channel)
-                loss = criterion(output_channel, input_channel)
-
-                nmse = torch.mean(cal_nmse(input_channel, output_channel), 0).item()
-
-                loss.backward()
-                optimizer.step()
-
-                # print statistics
-                running_loss = (loss.item() + i * running_loss) / (i + 1)
-                running_nmse = (nmse + i * running_nmse) / (i + 1)
-                log = OrderedDict()
-                log["loss"] = "val_loss={:.6e}".format(running_loss)
-                log["nmse"] = running_nmse
-                tepoch.set_postfix(log)
-            scheduler.step()
-
-        if not if_writer:
-            continue  # no validation unless writter enabled
-
-        # validation
-        net.eval()
-        with torch.no_grad():
-            total = 0
-            val_loss = 0
-            val_nmse = 0
-
-            for data in val_loader:
-                # get the inputs
-                input_channel, data_idx = data[0].to(device), data[1].to(device)
-
-                # zero the parameter gradients
-                optimizer.zero_grad()
-
-                # forward + backward + optimize
-                encoded_vector, output_channel = net(input_channel)
-
-                val_loss += nn.MSELoss(reduction="mean")(
-                    input_channel, output_channel
-                ).item() * data_idx.shape[0]
-                val_nmse += torch.sum(cal_nmse(input_channel, output_channel), 0)
-                total += data_idx.shape[0]
-
-            val_loss /= float(total)
-            val_nmse /= float(total)
-        print("val_loss={:.6e}".format(val_loss), flush=True)
-        print("val_nmse={:.6f}".format(val_nmse), flush=True)
-
-        writer.add_scalar("Loss/train", running_loss, epoch)
-        writer.add_scalar("Loss/test", val_loss, epoch)
-        writer.add_scalar("NMSE/train", running_nmse, epoch)
-        writer.add_scalar("NMSE/test", val_nmse, epoch)
-
-    if if_writer:
-        writer.close()
-        # torch.save(net.state_dict(), model_path)
-
-    # test
-    net.eval()
-    with torch.no_grad():
-        total = 0
-        test_loss = 0
-        test_nmse = 0
-
-        for data in test_loader:
-            # get the inputs
-            input_channel, data_idx = data[0].to(device), data[1].to(device)
-
-            # zero the parameter gradients
-            optimizer.zero_grad()
-
-            # forward + backward + optimize
-            encoded_vector, output_channel = net(input_channel)
-
-            test_loss += nn.MSELoss(reduction="mean")(
-                    input_channel, output_channel
-                ).item() * data_idx.shape[0]
-            test_nmse += torch.sum(cal_nmse(input_channel, output_channel), 0).item()
-            total += data_idx.shape[0]
-
-        test_loss /= float(total)
-        test_nmse /= float(total)
-
-        print("test_loss={:.6e}".format(test_loss), flush=True)
-        print("test_nmse={:.6f}".format(test_nmse), flush=True)
-
-        return {
-            "test_loss": test_loss,
-            "test_nmse": test_nmse,
-            "model_path": model_path,
-        }
-
-
-def test_model(test_loader, model_path):
-    return train_model(
-        train_loader=None,
-        val_loader=None,
-        test_loader=test_loader,
-        num_epoch=0,
-        if_writer=False,
-        model_path=model_path,
-        lr=0.0,
-    )
+from train_model import train_model
 
 
 if __name__ == "__main__":
@@ -180,41 +16,104 @@ if __name__ == "__main__":
     test_csv = "/test_data_idx.csv"
     train_batch_size = 64
     test_batch_size = 1024
+    num_pretrain_data = 32000
 
-    all_nmse = []
+    np.random.seed(10)
+    seeds = np.random.randint(0, 10000, size=(1000,))
 
-    for num_train_data, num_epoch in zip([1000, 2000, 4000, 8000, 16000, 32000], [50, 50, 50, 50, 100, 100]):
-        torch.manual_seed(768)
-        train_loader = DataLoader(
-            DataFeed(real_data_root, train_csv, num_data_point=num_train_data), batch_size=train_batch_size, shuffle=True
+    all_all_nmse = []
+    for i in range(10):
+        all_nmse = []
+
+        # pre-train on synth 32k data points
+        torch.manual_seed(seeds[i])
+        train_loader_ = DataLoader(
+            DataFeed(
+                synth_data_root,
+                train_csv,
+                num_data_point=num_pretrain_data,
+                random_state=seeds[i],
+            ),
+            batch_size=train_batch_size,
+            shuffle=True,
         )
-        val_loader = DataLoader(
-            DataFeed(real_data_root, val_csv, num_data_point=10000), batch_size=test_batch_size
-        )
-        test_loader = DataLoader(
-            DataFeed(real_data_root, test_csv, num_data_point=10000), batch_size=test_batch_size
+
+        test_loader_ = DataLoader(
+            DataFeed(
+                real_data_root, test_csv, num_data_point=10000, random_state=seeds[i]
+            ),
+            batch_size=test_batch_size,
         )
 
         now = datetime.datetime.now().strftime("%H_%M_%S")
         date = datetime.date.today().strftime("%y_%m_%d")
         comment = "_".join([now, date])
 
+        print("Number of trainig data points: " + str(num_pretrain_data))
         ret = train_model(
-            train_loader,
-            val_loader,
-            test_loader,
+            train_loader=train_loader_,
+            val_loader=None,
+            test_loader=test_loader_,
             comment=comment,
             encoded_dim=32,
-            num_epoch=num_epoch,
-            if_writer=True,
-            model_path='checkpoint/03_20_23_23_10_18_CsinetPlus-CsinetPlus.path',
-            lr=1e-4,
+            num_epoch=250,
+            lr=1e-2,
+            if_writer=False,
+            model_path=None,
+            save_model=True,
         )
-        all_nmse.append(ret["test_nmse"])
-    all_nmse = np.asarray(all_nmse)
-    print(all_nmse)
+        model_path = ret["model_path"]
+
+        # fine-tune on real
+        for num_train_data, num_epoch in zip(
+            [1000, 2000, 4000, 8000, 16000, 32000], [50, 50, 50, 50, 100, 100]
+        ):
+            torch.manual_seed(seeds[i])
+            train_loader = DataLoader(
+                DataFeed(
+                    real_data_root,
+                    train_csv,
+                    num_data_point=num_train_data,
+                    random_state=seeds[i],
+                ),
+                batch_size=train_batch_size,
+                shuffle=True,
+            )
+
+            test_loader = DataLoader(
+                DataFeed(
+                    real_data_root,
+                    test_csv,
+                    num_data_point=10000,
+                    random_state=seeds[i],
+                ),
+                batch_size=test_batch_size,
+            )
+
+            now = datetime.datetime.now().strftime("%H_%M_%S")
+            date = datetime.date.today().strftime("%y_%m_%d")
+            comment = "_".join([now, date])
+
+            print("Number of finetuning data points : " + str(num_train_data))
+            ret = train_model(
+                train_loader=train_loader,
+                val_loader=None,
+                test_loader=test_loader,
+                comment=comment,
+                encoded_dim=32,
+                num_epoch=num_epoch,
+                if_writer=False,
+                model_path=model_path,
+                lr=1e-4,
+            )
+            all_nmse.append(ret["test_nmse"])
+        all_nmse = np.asarray(all_nmse)
+        all_all_nmse.append(all_nmse)
+    all_all_nmse = np.stack(all_all_nmse, 0)
+
+    print(all_all_nmse)
     savemat(
-        "result3/all_nmse_finetune.mat",
-        {"all_nmse_finetune": all_nmse},
-        )
+        "result4/all_nmse_finetune.mat",
+        {"all_nmse_finetune": all_all_nmse},
+    )
     print("done")
