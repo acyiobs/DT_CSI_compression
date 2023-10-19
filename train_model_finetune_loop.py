@@ -172,7 +172,6 @@ def test_model(test_loader, model_path):
 
 
 if __name__ == "__main__":
-    torch.manual_seed(0)
     torch.use_deterministic_algorithms(True)
     real_data_root = "DeepMIMO/DeepMIMO_datasets/Boston5G_3p5_1"
     synth_data_root = "DeepMIMO/DeepMIMO_datasets/Boston5G_3p5_small_notree"
@@ -184,8 +183,8 @@ if __name__ == "__main__":
 
     all_nmse = []
 
-    for num_train_data in [1000, 2000, 4000, 8000, 16000, 32000]:
-
+    for num_train_data, num_epoch in zip([1000, 2000, 4000, 8000, 16000, 32000], [50, 50, 50, 50, 100, 100]):
+        torch.manual_seed(768)
         train_loader = DataLoader(
             DataFeed(real_data_root, train_csv, num_data_point=num_train_data), batch_size=train_batch_size, shuffle=True
         )
@@ -206,16 +205,16 @@ if __name__ == "__main__":
             test_loader,
             comment=comment,
             encoded_dim=32,
-            num_epoch=10,
+            num_epoch=num_epoch,
             if_writer=True,
-            model_path='checkpoint/22_57_24_23_10_13_Csinet-Csinet_train_on_synth.path',
+            model_path='checkpoint/03_20_23_23_10_18_CsinetPlus-CsinetPlus.path',
             lr=1e-4,
         )
         all_nmse.append(ret["test_nmse"])
     all_nmse = np.asarray(all_nmse)
     print(all_nmse)
     savemat(
-        "result/all_nmse_finetune.mat",
+        "result3/all_nmse_finetune.mat",
         {"all_nmse_finetune": all_nmse},
         )
     print("done")
