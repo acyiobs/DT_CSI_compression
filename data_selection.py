@@ -7,6 +7,7 @@ from train_model import test_model
 from utils.cal_nmse import cal_nmse
 from data_feed.data_feed import DataFeed
 from matplotlib import pyplot as plt
+from scipy.io import savemat
 
 
 def select_data(test_loader, model_path, num_data=None):
@@ -25,12 +26,15 @@ def select_data(test_loader, model_path, num_data=None):
     test_data_idx = test_data_idx[sorted_nmse_idx]
 
     # visualization
-    # pdf = count / sum(count)
-    # cdf = np.cumsum(pdf)
-    # plt.plot(bins_count[1:], cdf, label="CDF")
-    # plt.legend()
-    # plt.show()
-    # print("done")
+    count, bins_count = np.histogram(10*np.log10(test_nmse_all), bins=50)
+    pdf = count #/ sum(count)
+    cdf = np.cumsum(pdf)
+    plt.plot(bins_count[1:], cdf, label="Train on synth (32k)")
+    plt.xlabel('Test on real NMSE (dB)')
+    plt.legend()
+    plt.grid()
+    plt.show()
+    print("done")
 
     if not num_data:
         return test_data_idx
@@ -49,9 +53,23 @@ if __name__ == "__main__":
     test_batch_size = 1024
 
     test_loader = DataLoader(
-        DataFeed(synth_data_root, test_csv, num_data_point=10000),
+        DataFeed(real_data_root, train_csv, num_data_point=32000),
         batch_size=test_batch_size,
     )
     model_path = "checkpoint/03_20_23_23_10_18_CsinetPlus-CsinetPlus.path"
-    select_idx = select_data(test_loader, model_path)
-    print("done")
+    select_data_idx = select_data(test_loader, model_path, 1000)
+    savemat(
+        "result3/select_data_idx_synth.mat",
+        {"select_data_idx_synth": select_data_idx},
+    )
+
+    test_loader = DataLoader(
+        DataFeed(real_data_root, test_csv, num_data_point=10000),
+        batch_size=test_batch_size,
+    )
+    model_path = "checkpoint/03_20_23_23_10_18_CsinetPlus-CsinetPlus.path"
+    select_data_idx = select_data(test_loader, model_path, 1000)
+    savemat(
+        "result3/select_data_idx_real.mat",
+        {"select_data_idx_real": select_data_idx},
+    )

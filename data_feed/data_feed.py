@@ -13,7 +13,7 @@ def create_samples(data_root, csv_path, random_state, num_data_point, portion, s
     channel_ad_clip = loadmat(data_root+'/channel_ad_clip.mat')['all_channel_ad_clip']
 
     # load data index
-    if not select_data_idx:
+    if select_data_idx is None:
         data_idx = pd.read_csv(data_root+csv_path)["data_idx"].to_numpy()
     else:
         data_idx = select_data_idx
@@ -23,7 +23,7 @@ def create_samples(data_root, csv_path, random_state, num_data_point, portion, s
     channel_ad_clip, data_idx = sklearn.utils.shuffle(channel_ad_clip, data_idx, random_state=random_state)
     channel_ad_clip = np.squeeze(channel_ad_clip)
 
-    if not select_data_idx: # if no particular data is selected
+    if select_data_idx is None: # if no particular data is selected
         if num_data_point:
             channel_ad_clip = channel_ad_clip[:num_data_point, ...]
             data_idx = data_idx[:num_data_point, ...]
@@ -42,7 +42,7 @@ def create_samples(data_root, csv_path, random_state, num_data_point, portion, s
 
 
 class DataFeed(Dataset):
-    def __init__(self, data_root, csv_path, random_state=0, num_data_point=None, portion=1.0, select_data_idx=[]):
+    def __init__(self, data_root, csv_path, random_state=0, num_data_point=None, portion=1.0, select_data_idx=None):
         self.data_root = data_root
         self.channel_ad_clip, self.data_idx = create_samples(data_root, csv_path, random_state, num_data_point, portion, select_data_idx)
 
