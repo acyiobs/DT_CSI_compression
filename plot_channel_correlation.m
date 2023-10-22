@@ -10,17 +10,17 @@ load('result3\select_data_idx_real.mat');
 
 rng("default");
 
-tmp_idx1 = find(synth_pos(:,1)>200);
-tmp_idx2 = find(synth_pos(:,2)<100);
-tmp_idx = intersect(tmp_idx1, tmp_idx2);
-synth_pos = synth_pos(tmp_idx,:);
-synth_channel = synth_channel(tmp_idx,:);
-
-tmp_idx1 = find(real_pos(:,1)>200);
-tmp_idx2 = find(real_pos(:,2)<100);
-tmp_idx = intersect(tmp_idx1, tmp_idx2);
-real_pos = real_pos(tmp_idx,:);
-real_channel = real_channel(tmp_idx,:);
+% tmp_idx1 = find(synth_pos(:,1)>200);
+% tmp_idx2 = find(synth_pos(:,2)<100);
+% tmp_idx = intersect(tmp_idx1, tmp_idx2);
+% synth_pos = synth_pos(tmp_idx,:);
+% synth_channel = synth_channel(tmp_idx,:);
+% 
+% tmp_idx1 = find(real_pos(:,1)>200);
+% tmp_idx2 = find(real_pos(:,2)<100);
+% tmp_idx = intersect(tmp_idx1, tmp_idx2);
+% real_pos = real_pos(tmp_idx,:);
+% real_channel = real_channel(tmp_idx,:);
 
 
 [~, idx_synth] = ismember(synth_pos, real_pos, 'rows');
@@ -56,3 +56,9 @@ imagesc(channel_correlation);
 xlabel('Datat sample index');
 ylabel('Datat sample index');
 % colormap gray;
+
+synth_real_channel_correlation = zeros(size(real_channel_,1),1);
+for i=1:size(real_channel_,1)
+    synth_real_channel_correlation(i) = abs(synth_channel_(i,:)*real_channel_(i,:)') /norm(synth_channel_(i,:))/norm(real_channel_(i,:));
+end
+

@@ -186,7 +186,7 @@ if __name__ == "__main__":
     for num_train_data, num_epoch in zip([1000, 2000, 4000, 8000, 16000, 32000], [50, 50, 50, 50, 100, 100]):
         torch.manual_seed(768)
         train_loader = DataLoader(
-            DataFeed(real_data_root, train_csv, num_data_point=num_train_data), batch_size=train_batch_size, shuffle=True
+            DataFeed(synth_data_root, train_csv, num_data_point=num_train_data), batch_size=train_batch_size, shuffle=True
         )
         val_loader = DataLoader(
             DataFeed(real_data_root, val_csv, num_data_point=10000), batch_size=test_batch_size
