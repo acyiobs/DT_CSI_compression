@@ -28,7 +28,7 @@ if __name__ == "__main__":
     model_path = "checkpoint/03_20_23_23_10_18_CsinetPlus-CsinetPlus.path"
     all_nmse = []
 
-    for num_train_data, num_epoch in zip([1000], [50]):
+    for num_train_data, num_epoch in zip([1000, 2000, 4000, 8000, 16000, 32000], [50, 50, 50, 50, 100, 100]):
         torch.manual_seed(768)
         train_loader = DataLoader(
             DataFeed(real_data_root, train_csv, num_data_point=32000), batch_size=train_batch_size, shuffle=True
@@ -44,25 +44,35 @@ if __name__ == "__main__":
         date = datetime.date.today().strftime("%y_%m_%d")
         comment = "_".join([now, date])
 
-        # select_data_idx = select_data(train_loader, model_path, num_train_data)
+        select_data_idx = select_data(train_loader, model_path, num_train_data)    
+        finetune_real_dataset = DataFeed(real_data_root, train_csv, select_data_idx=select_data_idx)
+        finetune_synth_dataset = DataFeed(synth_data_root, train_csv, num_data_point=32000)
 
-        all_finetune_data_idx = pd.read_csv(real_data_root+train_csv)["data_idx"].to_numpy()
+        finetune_dataset = torch.utils.data.ConcatDataset([finetune_real_dataset, finetune_synth_dataset])
 
-        channel_correlation = pd.read_csv("DeepMIMO/DeepMIMO_datasets/real_correlatin_idx_sort.csv").to_numpy()
-        channel_correlation_idx_sort = np.int64(channel_correlation[:, 0]) # the index starts from 0
-        channel_correlation_sort = channel_correlation[:, 1]
+        finetune_loader = DataLoader(finetune_dataset, batch_size=train_batch_size, shuffle=True)
 
-        valid_sample_indicator = np.isin(channel_correlation_idx_sort, all_finetune_data_idx)
-        channel_correlation_idx_sort_valid = channel_correlation_idx_sort[valid_sample_indicator]
-        channel_correlation_sort_valid = channel_correlation_sort[valid_sample_indicator]
 
-        select_data_idx = channel_correlation_idx_sort_valid[:num_train_data]
+        # all_finetune_data_idx = pd.read_csv(real_data_root+train_csv)["data_idx"].to_numpy()
 
-        print('Highest correlation in selected data: %f'%(channel_correlation_sort_valid[num_train_data-1])) 
+        # channel_correlation = pd.read_csv("DeepMIMO/DeepMIMO_datasets/real_correlatin_idx_sort.csv").to_numpy()
+        # channel_correlation_idx_sort = np.int64(channel_correlation[:, 0]) # the index starts from 0
+        # channel_correlation_sort = channel_correlation[:, 1]
 
-        finetune_loader = DataLoader(
-            DataFeed(real_data_root, train_csv, select_data_idx=select_data_idx), batch_size=train_batch_size, shuffle=True
-        )
+        # valid_sample_indicator = np.isin(channel_correlation_idx_sort, all_finetune_data_idx)
+        # channel_correlation_idx_sort_valid = channel_correlation_idx_sort[valid_sample_indicator]
+        # channel_correlation_sort_valid = channel_correlation_sort[valid_sample_indicator]
+
+        # select_data_idx = channel_correlation_idx_sort_valid[:num_train_data]
+
+        # print('Highest correlation in selected data: %f'%(channel_correlation_sort_valid[num_train_data-1])) 
+
+        # finetune_real_dataset = DataFeed(real_data_root, train_csv, select_data_idx=select_data_idx)
+        # finetune_synth_dataset = DataFeed(synth_data_root, train_csv, num_data_point=32000)
+
+        # finetune_dataset = torch.utils.data.ConcatDataset([finetune_real_dataset, finetune_synth_dataset])
+
+        # finetune_loader = DataLoader(finetune_dataset, batch_size=train_batch_size, shuffle=True)
 
         ret = train_model(
             finetune_loader,
@@ -71,15 +81,15 @@ if __name__ == "__main__":
             comment=comment,
             encoded_dim=32,
             num_epoch=num_epoch,
-            if_writer=True,
+            if_writer=False,
             model_path=model_path,
             lr=1e-4,
         )
         all_nmse.append(ret["test_nmse"])
     all_nmse = np.asarray(all_nmse)
     print(all_nmse)
-    # savemat(
-    #     "result3/all_nmse_finetune_select.mat",
-    #     {"all_nmse_finetune_select": all_nmse},
-    #     )
-    # print("done")
+    savemat(
+        "result3/all_nmse_finetune_select_combine.mat",
+        {"all_nmse_finetune_select_combine": all_nmse},
+        )
+    print("done")

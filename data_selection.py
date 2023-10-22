@@ -25,16 +25,15 @@ def select_data(test_loader, model_path, num_data=None):
     test_nmse_all = test_nmse_all[sorted_nmse_idx]
     test_data_idx = test_data_idx[sorted_nmse_idx]
 
-    # visualization
-    count, bins_count = np.histogram(10*np.log10(test_nmse_all), bins=50)
-    pdf = count #/ sum(count)
-    cdf = np.cumsum(pdf)
-    plt.plot(bins_count[1:], cdf, label="Train on synth (32k)")
-    plt.xlabel('Test on real NMSE (dB)')
-    plt.legend()
-    plt.grid()
-    plt.show()
-    print("done")
+    # # visualization
+    # count, bins_count = np.histogram(10*np.log10(test_nmse_all), bins=50)
+    # pdf = count #/ sum(count)
+    # cdf = np.cumsum(pdf)
+    # plt.plot(bins_count[1:], cdf, label="Train on synth (32k)")
+    # plt.xlabel('Test on real NMSE (dB)')
+    # plt.legend()
+    # plt.grid()
+    # plt.show()
 
     if not num_data:
         return test_data_idx
