@@ -113,7 +113,7 @@ if __name__ == "__main__":
 
     print(all_all_nmse)
     savemat(
-        "result4/all_nmse_finetune.mat",
-        {"all_nmse_finetune": all_all_nmse},
+        "result4/all_avg_nmse_finetune.mat",
+        {"all_avg_nmse_finetune": all_all_nmse},
     )
     print("done")

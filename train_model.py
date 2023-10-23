@@ -171,17 +171,49 @@ def train_model(
         }
 
 
-def test_model(test_loader, model_path):
-    return train_model(
-        train_loader=None,
-        val_loader=None,
-        test_loader=test_loader,
-        num_epoch=0,
-        if_writer=False,
-        model_path=model_path,
-        lr=0.0,
-    )
+def test_model(
+    test_loader,
+    net=None,
+    model_path=None,
+    encoded_dim=16,
+):
+    # check gpu acceleration availability
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # Assuming that we are on a CUDA machine, this should print a CUDA device:
+    print(device)
 
+    # instantiate the model and send to GPU
+    if model_path:
+        net = CsinetPlus(encoded_dim)
+        net.load_state_dict(torch.load(model_path))
+
+    net.to(device)
+
+    # test
+    net.eval()
+    with torch.no_grad():
+        test_loss = []
+        test_nmse = []
+        test_data_idx = []
+
+        for data in test_loader:
+            # get the inputs
+            input_channel, data_idx = data[0].to(device), data[1].to(device)
+
+            # forward + backward + optimize
+            encoded_vector, output_channel = net(input_channel)
+            test_loss.append(nn.MSELoss(reduction="none")(input_channel, output_channel).mean((-1,-2,-3)).cpu().numpy())
+            test_nmse.append(cal_nmse(input_channel, output_channel).cpu().numpy())
+            test_data_idx.append(data_idx.cpu().numpy())
+        test_loss = np.concatenate(test_loss)
+        test_nmse = np.concatenate(test_nmse)
+        test_data_idx = np.concatenate(test_data_idx)
+        return {
+            "test_loss_all": test_loss,
+            "test_nmse_all": test_nmse,
+            "test_data_idx": test_data_idx
+        }
+    
 
 if __name__ == "__main__":
     torch.manual_seed(768)
