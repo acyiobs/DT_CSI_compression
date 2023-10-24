@@ -49,7 +49,7 @@ def train_model(
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(net.parameters(), lr=lr)
     scheduler = torch.optim.lr_scheduler.MultiStepLR(
-        optimizer, milestones=[], gamma=0.1
+        optimizer, milestones=[100], gamma=0.1
     )
     # scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.8)
 
@@ -218,16 +218,16 @@ def test_model(
 if __name__ == "__main__":
     torch.manual_seed(768)
     torch.use_deterministic_algorithms(True)
-    real_data_root = "DeepMIMO/DeepMIMO_datasets/Boston5G_3p5_1"
-    synth_data_root = "DeepMIMO/DeepMIMO_datasets/Boston5G_3p5_small_notree"
+    real_data_root = "DeepMIMO/DeepMIMO_datasets/Boston5G_3p5_real"
+    synth_data_root = "DeepMIMO/DeepMIMO_datasets/Boston5G_3p5_notree"
     train_csv = "/train_data_idx.csv"
     val_csv = "/test_data_idx.csv"
     test_csv = "/test_data_idx.csv"
-    train_batch_size = 64
+    train_batch_size = 4
     test_batch_size = 1024
 
     train_loader = DataLoader(
-        DataFeed(synth_data_root, train_csv, num_data_point=1000),
+        DataFeed(real_data_root, train_csv, num_data_point=5120),
         batch_size=train_batch_size,
         shuffle=True,
     )
@@ -250,7 +250,7 @@ if __name__ == "__main__":
         test_loader,
         comment=comment,
         encoded_dim=32,
-        num_epoch=500,
+        num_epoch=1000,
         if_writer=True,
         model_path=None,
         lr=1e-2,

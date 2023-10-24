@@ -1,10 +1,17 @@
 clear;
 clc;
 
-synth_channel = load('DeepMIMO\DeepMIMO_datasets\Boston5G_3p5_small_notree\channel_ad_clip.mat').all_channel_ad_clip;
-real_channel = load('DeepMIMO\DeepMIMO_datasets\Boston5G_3p5_1\channel_ad_clip.mat').all_channel_ad_clip;
-synth_pos = load('DeepMIMO\DeepMIMO_datasets\Boston5G_3p5_small_notree\all_pos.mat').all_pos;
-real_pos = load('DeepMIMO\DeepMIMO_datasets\Boston5G_3p5_1\all_pos.mat').all_pos;
+% synth_channel = load('DeepMIMO\DeepMIMO_datasets\old\Boston5G_3p5_small_notree\channel_ad_clip.mat').all_channel_ad_clip;
+% real_channel = load('DeepMIMO\DeepMIMO_datasets\old\Boston5G_3p5_1\channel_ad_clip.mat').all_channel_ad_clip;
+% synth_pos = load('DeepMIMO\DeepMIMO_datasets\old\Boston5G_3p5_small_notree\all_pos.mat').all_pos;
+% real_pos = load('DeepMIMO\DeepMIMO_datasets\old\Boston5G_3p5_1\all_pos.mat').all_pos;
+
+
+synth_channel = matfile('DeepMIMO\DeepMIMO_datasets\Boston5G_3p5_notree\channel_ad_clip.mat').all_channel_ad_clip;
+real_channel = matfile('DeepMIMO\DeepMIMO_datasets\Boston5G_3p5_real\channel_ad_clip.mat').all_channel_ad_clip;
+synth_pos = matfile('DeepMIMO\DeepMIMO_datasets\Boston5G_3p5_notree\dataset.mat').all_pos;
+real_pos = matfile('DeepMIMO\DeepMIMO_datasets\Boston5G_3p5_real\dataset.mat').all_pos;
+
 % load('result3\select_data_idx_synth.mat');
 % load('result3\select_data_idx_real.mat');
 
@@ -42,7 +49,7 @@ cdfplot(synth_real_channel_correlation);
 [synth_real_channel_correlation_sort, sort_idx] = sort(synth_real_channel_correlation, 'ascend');
 sort_idx = int64(sort_idx);
 %%
-num_low_correlation_samples = 1000;
+num_low_correlation_samples = 4000;
 select_synth_idx = ori_synth_idx_(sort_idx(1:num_low_correlation_samples));
 select_real_idx = ori_real_idx_(sort_idx(1:num_low_correlation_samples));
 

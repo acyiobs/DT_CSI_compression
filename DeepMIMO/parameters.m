@@ -13,7 +13,7 @@ params.active_BS = [1];             % Includes the numbers of the active BSs (va
 
 % Active users
 params.active_user_first = 1;       % The first row of the considered user section (check the scenario description for the user row map)
-params.active_user_last = 811;        % The last row of the considered user section (check the scenario description for the user row map)
+params.active_user_last = 622;        % The last row of the considered user section (check the scenario description for the user row map)
 
 % Subsampling of active users
 %--> Setting both subsampling parameters to 1 activate all the users indicated previously
