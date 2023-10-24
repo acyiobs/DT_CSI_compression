@@ -1,12 +1,12 @@
 clear;
 clc;
 
-synth_channel = load('DeepMIMO\DeepMIMO_datasets\Boston5G_3p5_small_notree\channel_ad_clip.mat').all_channel_ad_clip;
-real_channel = load('DeepMIMO\DeepMIMO_datasets\Boston5G_3p5_1\channel_ad_clip.mat').all_channel_ad_clip;
-synth_pos = load('DeepMIMO\DeepMIMO_datasets\Boston5G_3p5_small_notree\all_pos.mat').all_pos;
-real_pos = load('DeepMIMO\DeepMIMO_datasets\Boston5G_3p5_1\all_pos.mat').all_pos;
-load('result3\select_data_idx_synth.mat');
-load('result3\select_data_idx_real.mat');
+synth_channel = matfile('DeepMIMO\DeepMIMO_datasets\Boston5G_3p5_notree\channel_ad_clip.mat').all_channel_ad_clip;
+real_channel = matfile('DeepMIMO\DeepMIMO_datasets\Boston5G_3p5_real\channel_ad_clip.mat').all_channel_ad_clip;
+synth_pos = matfile('DeepMIMO\DeepMIMO_datasets\Boston5G_3p5_notree\dataset.mat').all_pos;
+real_pos = matfile('DeepMIMO\DeepMIMO_datasets\Boston5G_3p5_real\dataset.mat').all_pos;
+% load('result3\select_data_idx_synth.mat');
+% load('result3\select_data_idx_real.mat');
 
 rng("default");
 
@@ -22,6 +22,10 @@ rng("default");
 % real_pos = real_pos(tmp_idx,:);
 % real_channel = real_channel(tmp_idx,:);
 
+figure;
+scatter(synth_pos(:,1), synth_pos(:,2));
+figure
+scatter(real_pos(:,1), real_pos(:,2));
 
 [~, idx_synth] = ismember(synth_pos, real_pos, 'rows');
 
