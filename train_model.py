@@ -82,7 +82,7 @@ def train_model(
                 running_loss = (loss.item() + i * running_loss) / (i + 1)
                 running_nmse = (nmse + i * running_nmse) / (i + 1)
                 log = OrderedDict()
-                log["loss"] = "val_loss={:.6e}".format(running_loss)
+                log["loss"] = "{:.6e}".format(running_loss)
                 log["nmse"] = running_nmse
                 tepoch.set_postfix(log)
             scheduler.step()
@@ -227,7 +227,7 @@ if __name__ == "__main__":
     test_batch_size = 1024
 
     train_loader = DataLoader(
-        DataFeed(real_data_root, train_csv, num_data_point=5120),
+        DataFeed(synth_data_root, train_csv, num_data_point=5120),
         batch_size=train_batch_size,
         shuffle=True,
     )
@@ -250,9 +250,10 @@ if __name__ == "__main__":
         test_loader,
         comment=comment,
         encoded_dim=32,
-        num_epoch=1000,
+        num_epoch=160,
         if_writer=True,
         model_path=None,
         lr=1e-2,
+        save_model=True
     )
     print("done")

@@ -173,20 +173,21 @@ def test_model(test_loader, model_path):
 
 if __name__ == "__main__":
     torch.use_deterministic_algorithms(True)
-    real_data_root = "DeepMIMO/DeepMIMO_datasets/Boston5G_3p5_1"
-    synth_data_root = "DeepMIMO/DeepMIMO_datasets/Boston5G_3p5_small_notree"
+    real_data_root = "DeepMIMO/DeepMIMO_datasets/Boston5G_3p5_real"
+    synth_data_root = "DeepMIMO/DeepMIMO_datasets/Boston5G_3p5_notree"
     train_csv = "/train_data_idx.csv"
     val_csv = "/test_data_idx.csv"
     test_csv = "/test_data_idx.csv"
-    train_batch_size = 64
+    train_batch_size = 4
     test_batch_size = 1024
 
     all_nmse = []
+    num_epoch = 100
 
-    for num_train_data, num_epoch in zip([1000, 2000, 4000, 8000, 16000, 32000], [50, 50, 50, 50, 100, 100]):
+    for num_train_data in [320]:
         torch.manual_seed(768)
         train_loader = DataLoader(
-            DataFeed(synth_data_root, train_csv, num_data_point=num_train_data), batch_size=train_batch_size, shuffle=True
+            DataFeed(real_data_root, train_csv, num_data_point=num_train_data), batch_size=train_batch_size, shuffle=True
         )
         val_loader = DataLoader(
             DataFeed(real_data_root, val_csv, num_data_point=10000), batch_size=test_batch_size
@@ -207,14 +208,14 @@ if __name__ == "__main__":
             encoded_dim=32,
             num_epoch=num_epoch,
             if_writer=True,
-            model_path='checkpoint/03_20_23_23_10_18_CsinetPlus-CsinetPlus.path',
-            lr=1e-4,
+            model_path='checkpoint/16_07_59_23_10_24_CsinetPlus-CsinetPlus.path',
+            lr=1e-3,
         )
         all_nmse.append(ret["test_nmse"])
     all_nmse = np.asarray(all_nmse)
     print(all_nmse)
     savemat(
-        "result3/all_nmse_finetune.mat",
+        "result_new_data_1/all_nmse_finetune.mat",
         {"all_nmse_finetune": all_nmse},
         )
     print("done")
