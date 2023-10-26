@@ -184,7 +184,7 @@ if __name__ == "__main__":
     all_nmse = []
     num_epoch = 100
 
-    for num_train_data in [320]:
+    for num_train_data in [10, 20, 40, 80, 160, 320, 640, 1280, 2560, 5120]:
         torch.manual_seed(768)
         train_loader = DataLoader(
             DataFeed(real_data_root, train_csv, num_data_point=num_train_data), batch_size=train_batch_size, shuffle=True
@@ -215,7 +215,7 @@ if __name__ == "__main__":
     all_nmse = np.asarray(all_nmse)
     print(all_nmse)
     savemat(
-        "result_new_data_1/all_nmse_finetune.mat",
-        {"all_nmse_finetune": all_nmse},
+        "result_new_data_1/all_nmse_finetune_noselect.mat",
+        {"all_nmse_finetune_noselect": all_nmse},
         )
     print("done")
