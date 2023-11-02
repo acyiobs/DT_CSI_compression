@@ -21,7 +21,7 @@ if __name__ == "__main__":
     seeds = np.random.randint(0, 10000, size=(1000,))
 
     all_avg_nmse = []
-    for i in range(1):
+    for i in range(10):
         all_nmse = []
         for num_train_data in [10, 20, 40, 80, 160, 320, 640, 1280, 2560, 5120]:
             torch.manual_seed(seeds[i])
@@ -62,7 +62,7 @@ if __name__ == "__main__":
 
     print(all_avg_nmse)
     savemat(
-        "result_new_data_1/all_avg_nmse_train_on_real.mat",
+        "result_new_data_2/all_avg_nmse_train_on_real.mat",
         {"all_avg_nmse_train_on_real": all_avg_nmse},
     )
     print("done")

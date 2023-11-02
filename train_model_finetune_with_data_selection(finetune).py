@@ -44,15 +44,15 @@ if __name__ == "__main__":
         date = datetime.date.today().strftime("%y_%m_%d")
         comment = "_".join([now, date])
 
-        # select_data_idx = select_data(train_loader, model_path, num_train_data)    
-        # finetune_real_dataset = DataFeed(real_data_root, train_csv, select_data_idx=select_data_idx)
+        select_data_idx = select_data(train_loader, model_path, num_train_data)    
+        finetune_real_dataset = DataFeed(real_data_root, train_csv, select_data_idx=select_data_idx)
 
-        finetune_real_dataset = DataFeed(real_data_root, train_csv, num_data_point=num_train_data)
-        finetune_synth_dataset = DataFeed(synth_data_root, train_csv, num_data_point=5120)
+        # finetune_real_dataset = DataFeed(real_data_root, train_csv, num_data_point=num_train_data)
+        # finetune_synth_dataset = DataFeed(synth_data_root, train_csv, num_data_point=5120)
 
-        finetune_dataset = torch.utils.data.ConcatDataset([finetune_real_dataset, finetune_synth_dataset])
+        # finetune_dataset = torch.utils.data.ConcatDataset([finetune_real_dataset, finetune_synth_dataset])
 
-        finetune_loader = DataLoader(finetune_dataset, batch_size=train_batch_size, shuffle=True)
+        finetune_loader = DataLoader(finetune_real_dataset, batch_size=train_batch_size, shuffle=True)
 
 
         # all_finetune_data_idx = pd.read_csv(real_data_root+train_csv)["data_idx"].to_numpy()
@@ -91,7 +91,7 @@ if __name__ == "__main__":
     all_nmse = np.asarray(all_nmse)
     print(all_nmse)
     savemat(
-        "result_new_data_1/all_nmse_combine_noselect.mat",
-        {"all_nmse_combine_noselect": all_nmse},
+        "result_new_data_1/all_nmse_finetune_select.mat",
+        {"all_nmse_finetune_select": all_nmse},
         )
     print("done")
