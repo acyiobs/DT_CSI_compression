@@ -23,7 +23,7 @@ if __name__ == "__main__":
     all_avg_nmse = []
     for i in range(10):
         all_nmse = []
-        for num_train_data in [10, 20, 40, 80, 160, 320, 640, 1280, 2560, 5120]:
+        for num_train_data in [10240]: # [10, 20, 40, 80, 160, 320, 640, 1280, 2560, 5120]:
             torch.manual_seed(seeds[i])
             train_loader = DataLoader(
                 DataFeed(synth_data_root, train_csv, num_data_point=num_train_data, random_state=seeds[i]),
@@ -54,7 +54,7 @@ if __name__ == "__main__":
                 if_writer=False,
                 model_path=None,
                 lr=1e-2,
-                save_model=(num_train_data==5120)
+                save_model=(num_train_data==10240)
             )
             all_nmse.append(ret["all_val_nmse"])
         avg_nmse = np.asarray([np.asarray(nmse).mean() for nmse in all_nmse])
@@ -63,7 +63,7 @@ if __name__ == "__main__":
 
     print(all_avg_nmse)
     savemat(
-        "result_new_data_2/all_avg_nmse_train_on_synth.mat",
+        "result_new_data_3/all_avg_nmse_train_on_synth.mat",
         {"all_avg_nmse_train_on_synth": all_avg_nmse},
     )
     print("done")
