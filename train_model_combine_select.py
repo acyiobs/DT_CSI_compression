@@ -43,7 +43,7 @@ if __name__ == "__main__":
     for i in range(1,10):
         all_nmse = []
         model_path = model_paths[i]
-        for num_train_data in [10, 20, 40, 80, 160, 320, 640, 1280, 2560, 5120, 10240][::-1]:
+        for num_train_data in [10, 20, 40, 80, 160, 320, 640, 1280, 2560, 5120, 10240]:
             torch.manual_seed(seeds[i])
             train_loader = DataLoader(
                 DataFeed(real_data_root, train_csv, num_data_point=10240), batch_size=train_batch_size, shuffle=True

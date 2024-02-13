@@ -44,31 +44,31 @@ def select_data(test_loader, model_path, num_data=None):
 if __name__ == "__main__":
     torch.manual_seed(768)
     torch.use_deterministic_algorithms(True)
-    real_data_root = "DeepMIMO/DeepMIMO_datasets/Boston5G_3p5_1"
-    synth_data_root = "DeepMIMO/DeepMIMO_datasets/Boston5G_3p5_small_notree"
+    real_data_root = "DeepMIMO/DeepMIMO_datasets/Boston5G_3p5_real"
+    synth_data_root = "DeepMIMO/DeepMIMO_datasets/Boston5G_3p5_notree"
     train_csv = "/train_data_idx.csv"
     val_csv = "/test_data_idx.csv"
     test_csv = "/test_data_idx.csv"
     test_batch_size = 1024
 
     test_loader = DataLoader(
-        DataFeed(real_data_root, train_csv, num_data_point=32000),
+        DataFeed(synth_data_root, test_csv, num_data_point=5120),
         batch_size=test_batch_size,
     )
-    model_path = "checkpoint/03_20_23_23_10_18_CsinetPlus-CsinetPlus.path"
-    select_data_idx = select_data(test_loader, model_path, 1000)
+    model_path = "checkpoint/16_07_59_23_10_24_CsinetPlus-CsinetPlus.path"
+    data_idx, test_nmse = select_data(test_loader, model_path)
     savemat(
-        "result3/select_data_idx_synth.mat",
-        {"select_data_idx_synth": select_data_idx},
+        "result_new_data_1/select_data_synth.mat",
+        {"select_data_idx_synth": data_idx, "test_nmse_synth":test_nmse},
     )
 
     test_loader = DataLoader(
-        DataFeed(real_data_root, test_csv, num_data_point=10000),
+        DataFeed(real_data_root, test_csv, num_data_point=5120),
         batch_size=test_batch_size,
     )
-    model_path = "checkpoint/03_20_23_23_10_18_CsinetPlus-CsinetPlus.path"
-    select_data_idx = select_data(test_loader, model_path, 1000)
+    model_path = "checkpoint/16_07_59_23_10_24_CsinetPlus-CsinetPlus.path"
+    data_idx, test_nmse = select_data(test_loader, model_path)
     savemat(
-        "result3/select_data_idx_real.mat",
-        {"select_data_idx_real": select_data_idx},
+        "result_new_data_1/select_data_real.mat",
+        {"select_data_idx_real": data_idx, "test_nmse_real":test_nmse},
     )
