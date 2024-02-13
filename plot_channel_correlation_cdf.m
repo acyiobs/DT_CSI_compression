@@ -68,16 +68,16 @@ ylabel('Empirical CDF');
 title('');
 
 figure;
-cdfplot(real_synth_channel_correlation);
-hold on;
 tmp = [];
 for i=1:100
     tmp = [tmp; real_synth_channel_correlation(randperm(size(real_synth_channel_correlation, 1), 100))];
 end
-cdfplot(tmp)
+cdfplot(tmp);
+hold on;
+cdfplot(correlation_select(1:100));
 grid on;
 xlim([0.3, 1]);
-legend('Random 100 real training data points (Averaged)', 'All 5120 real training data points');
+legend('Randomly selected 100 target data points (Averaged)', 'Top-100 target data points with high test NMSE');
 xlabel('Normalized real-synth channel correlation');
 ylabel('Empirical CDF');
 title('');
