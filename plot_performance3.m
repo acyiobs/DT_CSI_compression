@@ -13,23 +13,23 @@ load('result_new_data_3\all_nmse_combine_select_.mat');
 % all_avg_nmse_train_on_synth = [all_avg_nmse_train_on_synth, tmp_synth];
 
 % num_data = [1000, 2000, 4000, 8000, 16000, 32000 ];
-num_data = [10, 20, 40, 80, 160, 320, 640, 1280, 2560, 5120];
+num_data = [10, 20, 40, 80, 160, 320, 640, 1280, 2560, 5120, 10240];
 figure;
 % direct generalization
-semilogx([num_data,10240], 10*log10(mean(all_avg_nmse_train_on_O1_synth,1)), '-s');
+semilogx(num_data, 10*log10(mean(all_avg_nmse_train_on_O1_synth,1)), '-s');
 hold on;
-semilogx([num_data,10240], 10*log10(mean(all_avg_nmse_train_on_synth,1)), '-s');
+semilogx(num_data, 10*log10(mean(all_avg_nmse_train_on_synth,1)), '-s');
 hold on;
-semilogx([num_data,10240], 10*log10(mean(all_avg_nmse_train_on_real,1)), '-s');
+semilogx(num_data, 10*log10(mean(all_avg_nmse_train_on_real,1)), '-s');
 hold on;
 % model refinement
-semilogx([num_data,10240], 10*log10(mean(all_nmse_finetune_select,1)), '-s');
+semilogx(num_data, 10*log10(mean(all_nmse_finetune_select,1)), '-s');
 hold on;
-semilogx([num_data,10240], 10*log10(mean(all_nmse_finetune_noselect,1)), '-s');
+semilogx(num_data, 10*log10(mean(all_nmse_finetune_noselect,1)), '-s');
 hold on;
-semilogx([num_data,10240], 10*log10(mean(all_nmse_combine_select,1)), '-s');
+semilogx(num_data, 10*log10(mean(all_nmse_combine_select,1)), '-s');
 
-plot([num_data,10240],zeros(1,11)-17.0337)
+plot(num_data,zeros(1,11)-17.0337)
 grid on;
 
 xlabel('Number of training data points / Number of refining target data points');
