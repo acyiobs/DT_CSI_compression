@@ -26,7 +26,7 @@ def generate_csvs(num_data, percentage):
 if __name__ == "__main__":
     random.seed(42)
 
-    data_path = "DeepMIMO/DeepMIMO_datasets/Boston5G_3p5_notree/channel_ad_clip.mat"
+    data_path = "DeepMIMO/DeepMIMO_datasets/O1_3p5/channel_ad_clip.mat"
     data = loadmat(data_path)['all_channel_ad_clip']
     num_data = data.shape[0]
     percentage = 0.8

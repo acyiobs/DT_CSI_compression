@@ -46,6 +46,12 @@ for i=1:size(real_channel_,1)
 end
 figure;
 cdfplot(synth_real_channel_correlation);
+xlim([0, 1]);
+title('');
+xlabel('Normalized channel correlation');
+ylabel('CDF');
+grid on;
+
 [synth_real_channel_correlation_sort, sort_idx] = sort(synth_real_channel_correlation, 'ascend');
 sort_idx = int64(sort_idx);
 %%
@@ -55,7 +61,7 @@ select_real_idx = ori_real_idx_(sort_idx(1:num_low_correlation_samples));
 
 real_idx_correlation_sort = ori_real_idx_(sort_idx)';
 correlation_data = [real_idx_correlation_sort-1, synth_real_channel_correlation_sort]; % the idx starts from 0 to match python
-csvwrite('DeepMIMO\DeepMIMO_datasets\real_correlatin_idx_sort.csv', correlation_data);
+% csvwrite('DeepMIMO\DeepMIMO_datasets\real_correlatin_idx_sort.csv', correlation_data);
 
 figure
 scatter(synth_pos(:,1), synth_pos(:,2));

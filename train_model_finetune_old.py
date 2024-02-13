@@ -184,7 +184,7 @@ if __name__ == "__main__":
     all_nmse = []
     num_epoch = 100
 
-    for num_train_data in [320]:
+    for num_train_data in [5120]:
         torch.manual_seed(768)
         train_loader = DataLoader(
             DataFeed(real_data_root, train_csv, num_data_point=num_train_data), batch_size=train_batch_size, shuffle=True
