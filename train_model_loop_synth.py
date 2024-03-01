@@ -1,3 +1,4 @@
+import os 
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
@@ -8,22 +9,27 @@ from train_model import train_model
 
 
 if __name__ == "__main__":
-    torch.use_deterministic_algorithms(True)
+    #torch.use_deterministic_algorithms(True)
     real_data_root = "DeepMIMO/DeepMIMO_datasets/Boston5G_3p5_real"
-    synth_data_root = "DeepMIMO/DeepMIMO_datasets/Boston5G_3p5_notree"
+    synth_data_root = "DeepMIMO/DeepMIMO_datasets/Boston5G_3p5_notree_mid_res"
     train_csv = "/train_data_idx.csv"
     val_csv = "/test_data_idx.csv"
     test_csv = "/test_data_idx.csv"
     train_batch_size = 4
     test_batch_size = 1024
+    
+    output_dir = "./results_mid_res/"
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
     np.random.seed(10)
     seeds = np.random.randint(0, 10000, size=(1000,))
 
     all_avg_nmse = []
     for i in range(10):
+        print("Training Session: " + str(i))
         all_nmse = []
-        for num_train_data in [10240]: # [10, 20, 40, 80, 160, 320, 640, 1280, 2560, 5120]:
+        for num_train_data in [10, 20, 40, 80, 160, 320, 640, 1280, 2560, 5120]:
             torch.manual_seed(seeds[i])
             train_loader = DataLoader(
                 DataFeed(synth_data_root, train_csv, num_data_point=num_train_data, random_state=seeds[i]),
@@ -59,11 +65,19 @@ if __name__ == "__main__":
             all_nmse.append(ret["all_val_nmse"])
         avg_nmse = np.asarray([np.asarray(nmse).mean() for nmse in all_nmse])
         all_avg_nmse.append(avg_nmse)
+        
+        
+        print(all_avg_nmse)
+        savemat(
+            os.path.join(output_dir, "all_avg_nmse_train_on_mid_res_synth.mat"),
+            {"all_avg_nmse_train_on_synth": np.stack(all_avg_nmse, 0)},
+        )
+        
     all_avg_nmse = np.stack(all_avg_nmse, 0)
 
     print(all_avg_nmse)
     savemat(
-        "result_new_data_3/all_avg_nmse_train_on_synth.mat",
+        os.path.join(output_dir, "all_avg_nmse_train_on_mid_res_synth.mat"),
         {"all_avg_nmse_train_on_synth": all_avg_nmse},
     )
     print("done")

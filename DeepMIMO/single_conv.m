@@ -1,4 +1,4 @@
-files = dir('**/*.mat');
+files = dir('Raytracing_scenarios/Boston5G_3p5/*.mat');
 % folder = strsplit(files(1).folder, '\')
 % The following command will create a single precision of copy 
 % the all mat files under this directory (including subfolders)
